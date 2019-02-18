@@ -1,0 +1,157 @@
+options {
+STATIC=false;
+}
+
+PARSER_BEGIN(Defcc)
+package com.playground.javacc.modelgen.compiler.generated;
+
+import com.playground.javacc.modelgen.compiler.*;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.io.*;
+
+@SuppressWarnings("unused")
+public class Defcc {
+    public static void main(String args[]) throws FileNotFoundException, ParseException, IOException {
+        String modelFile = args[0];
+        File file = new File(modelFile);
+        JModules modules = null;
+        FileReader reader = null;
+        try {
+            reader = new FileReader(file);
+            modules = new Defcc(new FileReader(file)).Start();
+        } finally {
+            reader.close();
+        }
+        modules.write(new JDir(new File(".")));
+    }
+}
+
+PARSER_END(Defcc)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+SPECIAL_TOKEN :
+{
+  "//" : WithinOneLineComment
+}
+
+<WithinOneLineComment> SPECIAL_TOKEN :
+{
+  <("\n" | "\r" | "\r\n" )> : DEFAULT
+}
+
+<WithinOneLineComment> MORE :
+{
+  <~[]>
+}
+
+SPECIAL_TOKEN :
+{
+  "/*" : WithinMultiLineComment
+}
+
+<WithinMultiLineComment> SPECIAL_TOKEN :
+{
+  "*/" : DEFAULT
+}
+
+<WithinMultiLineComment> MORE :
+{
+  <~[]>
+}
+
+TOKEN :
+{
+    <MODULE_TKN: "module">
+|   <CLASS_TKN: "class">
+|   <INCLUDE_TKN: "include">
+|   <BYTE_TKN: "byte">
+|   <BOOLEAN_TKN: "boolean">
+|   <INT_TKN: "int">
+|   <LONG_TKN: "long">
+|   <FLOAT_TKN: "float">
+|   <DOUBLE_TKN: "double">
+|   <STRING_TKN: "string">
+|   <BUFFER_TKN: "buffer">
+|   <VECTOR_TKN: "vector">
+|   <MAP_TKN: "map">
+|   <LBRACE_TKN: "{">
+|   <RBRACE_TKN: "}">
+|   <LT_TKN: "<">
+|   <GT_TKN: ">">
+|   <SEMICOLON_TKN: ";">
+|   <COMMA_TKN: ",">
+|   <DOT_TKN: ".">
+|   <CSTRING_TKN: "\"" ( ~["\""] )+ "\"">
+|   <IDENT_TKN: ["A"-"Z","a"-"z"] (["a"-"z","A"-"Z","0"-"9","_"])*>
+|   <IDENT_TKN_W_DOT: ["A"-"Z","a"-"z"] (["a"-"z","A"-"Z","0"-"9","_","."])*>
+}
+
+JModules Start():
+{
+    ArrayList<JModule> mlist = new ArrayList<JModule>();
+    JModule m;
+}
+{
+    (
+        m = Module()
+        { mlist.add(m); }
+    )+
+    <EOF>
+    { return new JModules(mlist); }
+}
+
+JModule Module():
+{
+    Token moduleName;
+    JModel m;
+    ArrayList<JModel> jmodels = new ArrayList<JModel>();
+}
+{
+    <MODULE_TKN> moduleName = <IDENT_TKN_W_DOT> <LBRACE_TKN>
+    (
+        m = Model()
+        { jmodels.add(m); }
+    )+
+    <RBRACE_TKN>
+    { return new JModule(moduleName.image, jmodels); }
+}
+
+JModel Model():
+{
+    Token clzName;
+    Token fName;
+    Token fType;
+    JField f;
+    ArrayList<JField> jfields = new ArrayList<JField>();
+}
+{
+    <CLASS_TKN> clzName = <IDENT_TKN> <LBRACE_TKN>
+    (
+        (
+            <STRING_TKN> fName = <IDENT_TKN>
+            { f = new JString(fName.image); }
+        |
+            <INT_TKN> fName = <IDENT_TKN>
+            { f = new JInt(fName.image); }
+        |
+            fType=<IDENT_TKN_W_DOT> fName = <IDENT_TKN>
+            { f = new JClazz(fType.image, fName.image); }
+        |
+            fType=<IDENT_TKN> fName = <IDENT_TKN>
+            { f = new JClazz(fType.image, fName.image); }
+        )
+        { jfields.add(f); }
+        <SEMICOLON_TKN>
+    )+
+    <RBRACE_TKN>
+    { return new JModel(clzName.image, jfields); }
+}

@@ -1,0 +1,29 @@
+
+module com.playground.javacc.example.data {
+    class Location {
+        string country;
+        string province;
+        string city;
+    }
+
+    class Name {
+        string first;
+        string second;
+    }
+}
+
+module com.playground.javacc.example.model {
+
+    class Occupation {
+        string name;
+        string desc;
+    }
+
+    class Person {
+        com.playground.javacc.example.data.Location location;
+        com.playground.javacc.example.data.Name name;
+        int age;
+        string nationality;
+        Occupation occupation;
+    }
+}
