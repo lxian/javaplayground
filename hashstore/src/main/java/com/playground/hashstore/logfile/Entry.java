@@ -1,4 +1,4 @@
-package com.playground.hashstore;
+package com.playground.hashstore.logfile;
 
 import java.nio.ByteBuffer;
 
@@ -18,7 +18,7 @@ public class Entry {
         int cap = byteBuffer.capacity();
         int keyLen = byteBuffer.getInt();
         byte[] keyB = new byte[keyLen];
-        byte[] value = new byte[cap - keyLen];
+        byte[] value = new byte[cap - keyLen - 4];
         byteBuffer.get(keyB);
         byteBuffer.get(value);
         return new Entry(new String(keyB), value);
@@ -37,8 +37,8 @@ public class Entry {
 
     private void prepareWriteBuf() {
         byte[] keyB = key.getBytes();
-        int len = 4 + 4 + keyB.length + value.length;
-        writeBuf = ByteBuffer.allocate(len);
+        int len = 4 + keyB.length + value.length;
+        writeBuf = ByteBuffer.allocate(len + 4);
         writeBuf.putInt(len);
         writeBuf.putInt(keyB.length);
         writeBuf.put(keyB);
