@@ -6,7 +6,6 @@ import com.playground.hashstore.logfile.LogFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -91,7 +90,7 @@ public class LogFileCompactor {
 
 
         // write compacted logs to the compated LogFile
-        LogFile compacted = logFileGenerator.createLogFile(toCompactFiles.get(0).getFileIndex());
+        LogFile compacted = logFileGenerator.createCompactLogFile(toCompactFiles.get(0).getFileIndex());
         compacted.init();
         for (Entry entry : mergedCompactedEntries.values()) {
             try {
