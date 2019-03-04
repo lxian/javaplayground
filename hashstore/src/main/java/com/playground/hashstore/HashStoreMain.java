@@ -34,16 +34,20 @@ public class HashStoreMain {
             String cmd = inputSegs[0].toLowerCase();
             switch (cmd) {
                 case "get": {
-                    String name = inputSegs[1];
-                    byte[] val = hashStore.read(name);
-                    System.out.println(val == null ? "NULL": new String(val));
+                    if (inputSegs.length >= 2) {
+                        String name = inputSegs[1];
+                        byte[] val = hashStore.read(name);
+                        System.out.println(val == null ? "NULL" : new String(val));
+                    }
                     break;
                 }
                 case "set": {
-                    String name = inputSegs[1];
-                    String val = inputSegs[2];
-                    hashStore.write(name, val.getBytes());
-                    System.out.println();
+                    if (inputSegs.length >= 3) {
+                        String name = inputSegs[1];
+                        String val = inputSegs[2];
+                        hashStore.write(name, val.getBytes());
+                        System.out.println();
+                    }
                     break;
                 }
                 case "close": {

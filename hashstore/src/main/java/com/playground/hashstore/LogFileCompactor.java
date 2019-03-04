@@ -38,7 +38,7 @@ public class LogFileCompactor {
                 truncateCurrentFile();
             }
 
-            if (logFileManager.oldLogFiles().size() > ConfigProvider.config().compactFileCountThreshold()) {
+            if (logFileManager.oldLogFiles().size() >= ConfigProvider.config().compactFileCountThreshold()) {
                 compact(logFileManager.oldLogFiles());
             }
 

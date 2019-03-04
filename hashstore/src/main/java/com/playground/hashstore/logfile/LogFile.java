@@ -29,8 +29,6 @@ public class LogFile {
 
     private List<FileChannel> inChs;
 
-    private FileType fileType;
-
     private LogFile() {
         keyOffsets = new HashMap<String, Long>();
         inChPool = new ArrayBlockingQueue<FileChannel>(ConfigProvider.config().getReadParallelism());
@@ -41,11 +39,10 @@ public class LogFile {
      * create a fresh log file
      * @param file is created and on the path
      */
-    public LogFile(long fileIndex, File file, FileType fileType) {
+    public LogFile(long fileIndex, File file) {
         this();
         this.fileIndex = fileIndex;
         this.file = file;
-        this.fileType = fileType;
     }
 
     public void loadData() throws IOException {
@@ -146,10 +143,6 @@ public class LogFile {
         } finally {
             inChPool.offer(inCh);
         }
-    }
-
-    public FileType getFileType() {
-        return fileType;
     }
 
     public File getFile() {
