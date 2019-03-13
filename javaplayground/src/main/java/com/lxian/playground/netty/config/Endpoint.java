@@ -2,5 +2,5 @@ package com.lxian.playground.netty.config;
 
 public interface Endpoint {
 
-    boolean match(String );
+    boolean match(String url);
 }
