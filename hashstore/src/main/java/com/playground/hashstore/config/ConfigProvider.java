@@ -32,6 +32,7 @@ public class ConfigProvider {
         }
 
         Config config = new Config();
+        config.setPort(Integer.valueOf(prop.getProperty("port")));
         config.setCompactFileCountThreshold(Integer.valueOf(prop.getProperty("compactor.compact.file-count-threshold")));
         config.setCompactorTick(Long.valueOf(prop.getProperty("compactor.tick")));
         config.setDataDir(prop.getProperty("data-dir"));

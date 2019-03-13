@@ -4,6 +4,8 @@ import java.io.File;
 
 public class Config {
 
+    private int port;
+
     private int readParallelism;
 
     private String dataDir;
@@ -15,6 +17,14 @@ public class Config {
     private long compactorTick;
 
     private int compactFileCountThreshold;
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
 
     public int getReadParallelism() {
         return readParallelism;
