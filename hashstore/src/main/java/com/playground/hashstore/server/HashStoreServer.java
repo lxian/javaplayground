@@ -31,7 +31,7 @@ public class HashStoreServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline().addLast(new HashStoreCommandHandler());
+                            socketChannel.pipeline().addLast(new HashStoreCommandDecoder());
                         }
                     });
 
