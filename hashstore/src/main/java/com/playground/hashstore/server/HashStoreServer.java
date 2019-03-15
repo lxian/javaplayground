@@ -3,6 +3,8 @@ package com.playground.hashstore.server;
 
 import com.playground.hashstore.HashStore;
 import com.playground.hashstore.config.ConfigProvider;
+import com.playground.hashstore.server.codec.HashStoreCommandDecoder;
+import com.playground.hashstore.server.codec.HashStoreServerCodec;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -31,12 +33,20 @@ public class HashStoreServer {
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
-                            socketChannel.pipeline().addLast(new HashStoreCommandDecoder());
+                            socketChannel.pipeline()
+                                    .addLast(new HashStoreServerCodec())
+                                    .addLast(new HashStoreInboundHandler(hashStore));
                         }
                     });
 
             ChannelFuture channelFuture = bootstrap.bind().sync();
+
+            hashStore.start();
+
             channelFuture.channel().closeFuture().sync();
+
+            hashStore.close();
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -45,6 +55,8 @@ public class HashStoreServer {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            hashStore.close();
         }
 
     }

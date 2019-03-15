@@ -1,4 +1,4 @@
-package com.playground.hashstore.server;
+package com.playground.hashstore.server.codec;
 
 import com.playground.hashstore.config.ConfigProvider;
 import com.playground.hashstore.server.proto.command.GetCommand;
@@ -18,18 +18,13 @@ public class HashStoreCommandDecoder extends LengthFieldBasedFrameDecoder {
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
         ByteBuf frame = (ByteBuf) super.decode(ctx, in);
+        frame.readerIndex(4);
         byte op = frame.readByte();
         switch (op) {
             case CommandOPs.get:
-                byte[] bytes = new byte[frame.readInt()];
-                frame.readBytes(bytes);
-                return new GetCommand(new String(bytes));
+                return GetCommand.read(frame);
             case CommandOPs.set:
-                byte[] keyBytes = new byte[frame.readInt()];
-                frame.readBytes(keyBytes);
-                byte[] valBytes = new byte[frame.readInt()];
-                frame.readBytes(valBytes);
-                return new SetCommand(new String(keyBytes), valBytes);
+                return SetCommand.read(frame);
             default:
                 return null;
         }
