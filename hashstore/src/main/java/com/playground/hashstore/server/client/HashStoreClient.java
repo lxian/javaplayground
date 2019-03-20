@@ -1,6 +1,7 @@
 package com.playground.hashstore.server.client;
 
 import com.playground.hashstore.server.codec.HashStoreClientCodec;
+import com.playground.hashstore.server.proto.CommandOPs;
 import com.playground.hashstore.server.proto.command.GetCommand;
 import com.playground.hashstore.server.proto.command.SetCommand;
 import com.playground.hashstore.server.proto.response.GetResponse;
@@ -75,6 +76,19 @@ public class HashStoreClient {
         waitingRequests.put(reqId, holder);
         waitForResult(holder);
 
+        return handleGetResult(reqId, holder);
+    }
+
+
+    public void get(String key, ResultHandler resultHandler) throws HashStoreError {
+        final short reqId = nextReqId();
+        channel.writeAndFlush(new GetCommand(reqId, key));
+        final ResultHolder holder = new ResultHolder();
+        holder.setResultHandler(resultHandler);
+        waitingRequests.put(reqId, holder);
+    }
+
+    private byte[] handleGetResult(short reqId, ResultHolder holder) throws HashStoreError {
         waitingRequests.remove(reqId);
         GetResponse getResponse = ((GetResponse) holder.getResponse());
         if (getResponse.success) {
@@ -91,6 +105,10 @@ public class HashStoreClient {
         waitingRequests.put(reqId, holder);
         waitForResult(holder);
 
+        handleSetResult(reqId, holder);
+    }
+
+    private void handleSetResult(short reqId, ResultHolder holder) throws HashStoreError {
         waitingRequests.remove(reqId);
         SetResponse setResponse = ((SetResponse) holder.getResponse());
         if (!setResponse.success) {
@@ -98,11 +116,19 @@ public class HashStoreClient {
         }
     }
 
-    private void waitForResult(ResultHolder holder) {
-        synchronized (waitingRequests) {
+    public void set(String key, byte[] value, ResultHandler resultHandler) throws HashStoreError {
+        final short reqId = nextReqId();
+        channel.writeAndFlush(new SetCommand(reqId, key, value));
+        final ResultHolder holder = new ResultHolder();
+        holder.setResultHandler(resultHandler);
+        waitingRequests.put(reqId, holder);
+    }
+
+    private void waitForResult(final ResultHolder holder) {
+        synchronized (holder) {
             while (holder.getResponse() == null) {
                 try {
-                    waitingRequests.wait();
+                    holder.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -113,9 +139,41 @@ public class HashStoreClient {
     class ClientIncomingResponseHandler extends SimpleChannelInboundHandler<Response> {
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, Response msg) throws Exception {
-            waitingRequests.get(msg.id()).setResponse(msg);
-            synchronized (waitingRequests) {
-                waitingRequests.notifyAll();
+            final ResultHolder resultHolder = waitingRequests.get(msg.id());
+            resultHolder.setResponse(msg);
+            if (resultHolder.getResultHandler() != null) {
+                boolean success = false;
+                byte[] value = null;
+                HashStoreError error = null;
+                if (msg.getOp() == CommandOPs.get) {
+                    try {
+                        value = handleGetResult(msg.id(), resultHolder);
+                    } catch (HashStoreError e) {
+                        error = e;
+                    }
+                } else if (msg.getOp() == CommandOPs.set) {
+                    try {
+                        handleSetResult(msg.id(), resultHolder);
+                    } catch (HashStoreError e) {
+                        error = e;
+                    }
+                } else {
+                    logger.warn("Unrecognized message type {}", msg);
+                    waitingRequests.remove(msg.id());
+                    error = new HashStoreError("Unrecognized message type");
+                }
+
+                success = (error == null);
+
+                try {
+                    resultHolder.getResultHandler().onResult(new Result(success, value, error));
+                } catch (Throwable e) {
+                    logger.error("Error handling result for message {}", msg, e);
+                }
+            } else {
+                synchronized (resultHolder) {
+                    resultHolder.notifyAll();
+                }
             }
         }
     }

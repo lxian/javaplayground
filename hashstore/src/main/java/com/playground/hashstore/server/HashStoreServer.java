@@ -6,6 +6,7 @@ import com.playground.hashstore.config.ConfigProvider;
 import com.playground.hashstore.server.codec.HashStoreCommandDecoder;
 import com.playground.hashstore.server.codec.HashStoreServerCodec;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
@@ -19,11 +20,24 @@ public class HashStoreServer {
 
     private HashStore hashStore;
 
+    private Channel channel;
+
     public HashStoreServer(HashStore hashStore) {
         this.hashStore = hashStore;
     }
 
+    private Thread thread;
+
+    public void startInBackground() {
+        thread = new Thread(this::start);
+        thread.setDaemon(true);
+        thread.setName("hashstore-server-main");
+        thread.start();
+    }
+
     public void start() {
+        hashStore.start();
+
         InetSocketAddress inetSocketAddress = new InetSocketAddress(ConfigProvider.config().getPort());
         EventLoopGroup group = new NioEventLoopGroup();
         try {
@@ -40,13 +54,8 @@ public class HashStoreServer {
                     });
 
             ChannelFuture channelFuture = bootstrap.bind().sync();
-
-            hashStore.start();
-
+            channel = channelFuture.channel();
             channelFuture.channel().closeFuture().sync();
-
-            hashStore.close();
-
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -59,5 +68,10 @@ public class HashStoreServer {
             hashStore.close();
         }
 
+    }
+
+    public void close() {
+        hashStore.close();
+        channel.close();
     }
 }

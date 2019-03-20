@@ -5,6 +5,8 @@ import com.playground.hashstore.server.proto.response.Response;
 public class ResultHolder {
     private Response response;
 
+    private ResultHandler resultHandler;
+
     public ResultHolder() {
     }
 
@@ -20,4 +22,11 @@ public class ResultHolder {
         this.response = response;
     }
 
+    public ResultHandler getResultHandler() {
+        return resultHandler;
+    }
+
+    public void setResultHandler(ResultHandler resultHandler) {
+        this.resultHandler = resultHandler;
+    }
 }
