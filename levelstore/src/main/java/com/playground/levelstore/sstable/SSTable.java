@@ -34,6 +34,8 @@ public class SSTable {
 
     private List<FileChannel> inChs;
 
+    volatile boolean closing = false;
+
     private SSTable() {
         keyOffsets = new AvlTree<>();
         inChPool = new ArrayBlockingQueue<FileChannel>(ConfigProvider.config().getReadParallelism());
@@ -79,6 +81,7 @@ public class SSTable {
     }
 
     public void close() {
+        closing = true;
         for (FileChannel inCh : inChs) {
             try {
                 inCh.close();
@@ -148,6 +151,10 @@ public class SSTable {
     }
 
     public Entry read(String key) throws IOException {
+        if (closing) {
+            return null;
+        }
+
         Node<String> offset = keyOffsets.findNearest(key);
         if (offset == null) {
             return null;

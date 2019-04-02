@@ -4,7 +4,7 @@ public class Node<K extends Comparable<K>> {
 
     final K key;
 
-    final Object value;
+    Object value;
 
     int height;
 
@@ -28,5 +28,9 @@ public class Node<K extends Comparable<K>> {
 
     public Object getValue() {
         return value;
+    }
+
+    public void setValue(Object value) {
+        this.value = value;
     }
 }

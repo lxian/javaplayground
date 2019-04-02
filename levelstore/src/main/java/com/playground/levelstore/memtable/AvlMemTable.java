@@ -16,9 +16,6 @@ public class AvlMemTable implements MemTable {
     }
 
     public byte[] get(String key) {
-        if (frozen) {
-            throw new UnsupportedOperationException();
-        }
         return (byte[]) avlTree.find(key);
     }
 

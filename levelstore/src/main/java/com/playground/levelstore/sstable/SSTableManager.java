@@ -72,6 +72,28 @@ public class SSTableManager {
                 logger.error("Error writting to sstable {}", ssTable.getFile().getAbsolutePath(), e);
             }
         });
-        group0.add(ssTable);
+        group0.add(0, ssTable);
+    }
+
+    public void newSSTable(List<Entry> data, int level) {
+        SSTable ssTable = groups.get(level).newSSTable();
+        ssTable.enableRead();
+        ssTable.enableWrite();
+        data.forEach(entry -> {
+            try {
+                ssTable.write(entry.key, entry.value);
+            } catch (IOException e) {
+                logger.error("Error writting to sstable {}", ssTable.getFile().getAbsolutePath(), e);
+            }
+        });
+        groups.get(level).add(ssTable);
+    }
+
+    SSTableGroup getGroup(int level) {
+        return groups.get(level);
+    }
+
+    public int getMaxLevel() {
+        return maxLevel;
     }
 }

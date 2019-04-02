@@ -12,12 +12,21 @@ public class Config {
 
     private long memTableMaxSize;
 
-    Config(String dataDir, int indexDensity, int readParallelism, int maxLevel, long memTableMaxSize) {
+    private int lvl0CompactThreshold;
+
+    private int compactThreshold;
+
+    private int compactTick;
+
+    public Config(String dataDir, int indexDensity, int readParallelism, int maxLevel, long memTableMaxSize, int lvl0CompactThreshold, int compactThreshold, int compactTick) {
         this.dataDir = dataDir;
         this.indexDensity = indexDensity;
         this.readParallelism = readParallelism;
         this.maxLevel = maxLevel;
         this.memTableMaxSize = memTableMaxSize;
+        this.lvl0CompactThreshold = lvl0CompactThreshold;
+        this.compactThreshold = compactThreshold;
+        this.compactTick = compactTick;
     }
 
     public String getDataDir() {
@@ -58,5 +67,29 @@ public class Config {
 
     public void setMemTableMaxSize(long memTableMaxSize) {
         this.memTableMaxSize = memTableMaxSize;
+    }
+
+    public int getLvl0CompactThreshold() {
+        return lvl0CompactThreshold;
+    }
+
+    public void setLvl0CompactThreshold(int lvl0CompactThreshold) {
+        this.lvl0CompactThreshold = lvl0CompactThreshold;
+    }
+
+    public int getCompactThreshold() {
+        return compactThreshold;
+    }
+
+    public void setCompactThreshold(int compactThreshold) {
+        this.compactThreshold = compactThreshold;
+    }
+
+    public int getCompactTick() {
+        return compactTick;
+    }
+
+    public void setCompactTick(int compactTick) {
+        this.compactTick = compactTick;
     }
 }

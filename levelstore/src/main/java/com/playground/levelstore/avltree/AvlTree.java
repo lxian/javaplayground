@@ -45,6 +45,7 @@ public class AvlTree<K extends Comparable<K>> {
             size++;
             return new Node<>(key, value);
         } else if (key == node.key || key.compareTo(node.key) == 0) {
+            node.setValue(value);
             return node;
         } else if (key.compareTo(node.key) < 0) {
             node.left = doInsert(key, value, node.left);

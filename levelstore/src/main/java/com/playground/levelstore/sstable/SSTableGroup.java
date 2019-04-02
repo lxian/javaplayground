@@ -1,6 +1,7 @@
 package com.playground.levelstore.sstable;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -41,14 +42,32 @@ public class SSTableGroup {
     }
 
     public void remove(SSTable ssTable) {
-        ssTables.remove(ssTable);
+        if (ssTables.remove(ssTable)) {
+            ssTable.close();
+        }
     }
 
     public void add(SSTable ssTable) {
         ssTables.add(ssTable);
     }
 
+    public void add(int pos, SSTable ssTable) {
+        ssTables.add(pos, ssTable);
+    }
+
     public SSTable newSSTable() {
         return ssTableLoader.newSSTable();
+    }
+
+    int tableCount() {
+        return ssTables.size();
+    }
+
+    List<SSTable> listTables() {
+        return Collections.unmodifiableList(ssTables);
+    }
+
+    SSTable getTable(int idx) {
+        return ssTables.get(idx);
     }
 }

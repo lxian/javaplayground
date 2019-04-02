@@ -7,6 +7,7 @@ import com.playground.levelstore.memtable.MemTable;
 import com.playground.levelstore.sstable.Compactor;
 import com.playground.levelstore.sstable.SSTableManager;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -37,10 +38,7 @@ public class LevelStore {
         if (memTable.size() > ConfigProvider.config().getMemTableMaxSize() && immutableMemTable == null) {
             memTable.markImmutable();
             immutableMemTable = memTable;
-            executorService.submit(() -> {
-                compactor.compactMemtable(immutableMemTable);
-                immutableMemTable = null;
-            });
+            compactor.compactMemtable(immutableMemTable, success -> {immutableMemTable = null;});
             memTable = new AvlMemTable();
         }
     }
@@ -52,7 +50,7 @@ public class LevelStore {
         }
         MemTable immutableMemTable = this.immutableMemTable;
         if (immutableMemTable != null) {
-            val = memTable.get(key);
+            val = immutableMemTable.get(key);
             if (val != null) {
                 return val;
             }
@@ -65,7 +63,7 @@ public class LevelStore {
         if (memTable.size() > 0) {
             while (true) {
                 if (immutableMemTable == null) {
-                    compactor.compactMemtable(memTable);
+                    compactor.compactMemtable(memTable, success -> {});
                     return;
                 }
             }

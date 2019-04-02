@@ -1,41 +1,46 @@
 package com.playground.levelstore;
 
-import com.playground.levelstore.config.TestConfig;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public class LevelStoreTest {
 
+    Random random = new Random();
+
     @Test
-    public void test() {
+    public void test() throws IOException {
         LevelStore levelStore = new LevelStore(new TestConfig());
-        int n = 300;
+        int n = 10000;
+        Map<String, String> map = new HashMap<>();
         String[] keys = new String[n];
         while (n-- > 0) {
-            String key = String.valueOf(n);
-            keys[n] = key;
+            String key = String.format("%03d", random.nextInt(1000));
+            String val = randomString();
+//            System.out.println(n + ": " + key + " : " + val);
+            map.put(key, val);
+            levelStore.put(key, val.getBytes());
         }
-//        while (n-- > 0) {
-//            String key = String.valueOf(n);
-//            byte[] value = ("V" + key).getBytes();
-//            keys[n] = key;
-//            levelStore.put(String.valueOf(n), value);
-//        }
-//        try {
-//            Thread.sleep(2000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-        for (int i = 0; i < 300; i++) {
-            byte[] value = levelStore.get(keys[i]);
-            if (value == null || !new String(value).equals("V" + keys[i])) {
-                System.out.println(keys[i]);
-            }
-        }
+
+        map.forEach((k, v) -> {
+            assertEquals(v, new String(levelStore.get(k)));
+        });
 
         levelStore.flushAllToDisk();
 
+        System.in.read();
     }
 
+    String randomString() {
+        StringBuffer sb = new StringBuffer();
+        int len = random.nextInt(19) + 1;
+        while (len-- > 0) {
+            sb.append(random.nextInt(26) + 'a');
+        }
+        return sb.toString();
+    }
 }
